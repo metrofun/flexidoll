@@ -1,0 +1,115 @@
+.counter {
+    position : absolute;
+    left : 0;
+    top : 0;
+    z-index : 1;
+}
+body {
+    overflow : scroll;
+    color : black;
+    font-weight : bold;
+    font-size : 15px;
+}
+.scene {
+    float : left;
+    overflow : hidden;
+    /*box-shadow : inset 0 0 50px 10px red;*/
+    background : black;
+    position : relative;
+    width :600px;
+    height : 600px;
+    /*background : black;*/
+    position : relative;
+}
+.scene.adrenaline-mode {
+    background : black url('/images/adrenalin_mode_bg.png') top left repeat-x;
+}
+.scene.adrenaline-mode::after {
+    position : absolute;
+    top : 0;
+    left: 0;
+    background : url('/images/adrenalin_mode_bg.png') top left repeat-x;
+    -webkit-transform : rotate(-90deg);
+    width : 100%;
+    height : 100%;
+    content : "";
+}
+.scene.adrenaline-mode::before {
+    position : absolute;
+    top : 0;
+    right : 0;
+    background : url('/images/adrenalin_mode_bg.png') top left repeat-x;
+    -webkit-transform : rotate(90deg);
+    width : 100%;
+    height : 100%;
+    content : "";
+}
+.scene canvas, .effects{
+    position : absolute;
+    width : 100%;
+    height : 100%;
+}
+.adrenaline-mode .effects::before {
+    position : absolute;
+    bottom : 0;
+    right : 0;
+    background : url('/images/adrenalin_mode_bg.png') top left repeat-x;
+    -webkit-transform : rotate(180deg);
+    width : 100%;
+    height : 100%;
+    content : "";
+}
+.controls {
+    float : left;
+    width : 400px;
+}
+.slider {
+    width : 100px;
+}
+.shape {
+    position : absolute;
+    background-size : 100% 100%;
+    background-origin: content;
+    /*opacity : 0.8;*/
+    /*min-width :100px;*/
+    /*min-height : 100px;*/
+    /*left : -50%;*/
+    /*top : -50%;*/
+}
+.shape.circle {
+    background : url(/images/MrExpert_Trollface-Right.jpg) center center;
+    /*z-index : 1;*/
+    /*border-radius : 100%;*/
+}
+.shape.rect {
+    /*background : #feca9d;*/
+    background : url(/images/iron.png) center center;
+    background-size : auto;
+    /*border : 1px solid black;*/
+    /*border-radius : 25% / 50%;*/
+}
+.effect {
+    width : 30px;
+    height : 30px;
+    top : -15px;
+    left: -15px;
+    border-radius : 15px;
+    position : absolute;
+    background-color : red;
+    -webkit-transition : background-color 300ms ease;
+}
+.effect.block {
+    background-color : white;
+}
+.effect.animate {
+    background-color : transparent;
+}
+.indicators{
+  width : 600px;
+  overflow : hidden;
+}
+.indicators .hp {
+  width : 50%;
+  box-sizing : border-box;
+  float : left;
+}
