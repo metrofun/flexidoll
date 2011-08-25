@@ -14,15 +14,14 @@ body {
     float : left;
     overflow : hidden;
     /*box-shadow : inset 0 0 50px 10px red;*/
-    background : black;
+    /*background : black;*/
     position : relative;
     width :600px;
     height : 600px;
-    /*background : black;*/
     position : relative;
 }
 .scene.adrenaline-mode {
-    background : black url('/images/adrenalin_mode_bg.png') top left repeat-x;
+    background : url('/images/adrenalin_mode_bg.png') top left repeat-x;
 }
 .scene.adrenaline-mode::after {
     position : absolute;
@@ -69,24 +68,19 @@ body {
 .shape {
     position : absolute;
     background-size : 100% 100%;
-    background-origin: content;
-    /*opacity : 0.8;*/
-    /*min-width :100px;*/
-    /*min-height : 100px;*/
-    /*left : -50%;*/
-    /*top : -50%;*/
+    /*background-origin: border-box;*/
+    /*-webkit-transform: translate3d(0, 0, 0);*/
+    background-position : center;
+    /*background-color: red;*/
 }
-.shape.circle {
-    background : url(/images/MrExpert_Trollface-Right.jpg) center center;
-    /*z-index : 1;*/
-    /*border-radius : 100%;*/
-}
-.shape.rect {
-    /*background : #feca9d;*/
-    background : url(/images/iron.png) center center;
-    background-size : auto;
-    /*border : 1px solid black;*/
-    /*border-radius : 25% / 50%;*/
+.shape.torso1::after {
+  width : 100px;
+  height : 100px;
+  content : "";
+  position : absolute;
+  top : 0;
+  left : 0;
+  /*background : red;*/
 }
 .effect {
     width : 30px;

@@ -223,7 +223,8 @@ jQuery(function(){
                                 halfWidth : userData.halfWidth,
                                 halfHeight : userData.halfHeight,
                                 type : shape.GetType(),
-                                resourceId : userData.resourceId
+                                resourceId : userData.resourceId,
+                                class : userData.class
                             });
                         }
                     }
@@ -256,26 +257,16 @@ jQuery(function(){
             var scale = Settings.scale;
 
             var jShape = jQuery('<div class="shape"></div>')
+              .addClass(bodyData.class)
+              .css('background-image', 'url(/images/'+bodyData.class+'.png?ts='+Date.now()+')')
               .width(2 * bodyData.halfWidth * baseScale )
               .height(2 * bodyData.halfHeight * baseScale )
               .css('left', -bodyData.halfWidth* baseScale + 'px')
               .css('top', -bodyData.halfHeight* baseScale + 'px')
               .css('-webkit-transform', 'translate(' + ( ( bodyData.position.x - bodyData.halfWidth ) * scale ) + 'px, ' + ( ( bodyData.position.y - bodyData.halfHeight ) * scale ) + 'px) rotate(' + ( bodyData.angle ) + 'rad)')
-              .attr('data-type', bodyData.type)
               //.attr('data-half-base-height', bodyData.halfHeight * baseScale * 0)
               //.attr('data-half-base-width', bodyData.halfWidth * baseScale * 0)
               .appendTo(Renderer.jScene);
-
-            switch (bodyData.type) {
-            case e_circleShape : 
-                jShape
-                  .addClass('circle')
-                  .css('border-radius', bodyData.halfHeight * baseScale + 'px')
-                break;
-            case e_polygonShape : 
-                jShape.addClass('rect');
-                break;
-            }
             return jShape.get(0);
         },
         drawGrid : function() {
@@ -306,19 +297,19 @@ jQuery(function(){
                 switch (event.which) {
                 //down
                 case 40 : 
-                    motionVec2 = new b2Vec2(0, 1.5);
+                    motionVec2 = new b2Vec2(0, 10);
                     break;
                     //up
                 case 38 : 
-                    motionVec2 = new b2Vec2(0, -1.5);
+                    motionVec2 = new b2Vec2(0, -10);
                     break;
                     //left
                 case 37 : 
-                    motionVec2 = new b2Vec2(-1.5, 0);
+                    motionVec2 = new b2Vec2(-10, 0);
                     break;
                     //right
                 case 39 : 
-                    motionVec2 = new b2Vec2(1.5, 0);
+                    motionVec2 = new b2Vec2(10, 0);
                     break;
                 }
                 //console.debug(motionVec2);

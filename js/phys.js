@@ -47,52 +47,52 @@ Flexidoll.prototype  = {
         var self = this;
         self.headBody.ApplyImpulse(impulseVec, self.headBody.GetWorldCenter());
     },
-    size : 0.02,
+    size : 0.01,
     offsetX : undefined,
     offsetY : undefined,
     skeleton : {
         limbs : {
-            head : { x1 : 0 , y1: 0 , hw : 15, hh : 15, head : true},
-            torso1 : { x1 : 0 , y1: 28, hw : 15, hh : 10},
-            torso2 : { x1 : 0, y1: 43, hw : 15, hh : 10},
-            torso3 : { x1 : 0, y1: 58, hw : 15, hh : 10},
-            upperArmL : { x1 : -30, y1: 20, hw : 18, hh : 6.5},
-            upperArmR : { x1 : 30, y1: 20, hw : 18, hh : 6.5},
-            lowerArmL : { x1 : -57, y1: 20, hw : 17, hh : 6},
-            lowerArmR : { x1 : 57, y1: 20, hw : 17, hh : 6},
-            upperLegL : { x1 : -8 , y1: 85 , hw : 7.5, hh : 22},
-            upperLegR : { x1 : 8 , y1: 85 , hw : 7.5, hh : 22},
-            lowerLegL : { x1 : -8 , y1: 120 , hw : 6, hh : 20},
-            lowerLegR : { x1 : 8 , y1: 120 , hw : 6, hh : 20}
+            head : { x1 : 92, y1: 63, hw : 44, hh : 63, head : true},
+            torso1 : { x1 : 92, y1: 151, hw : 57, hh : 27},
+            torso2 : { x1 : 92, y1: 186, hw : 39, hh : 30},
+            torso3 : { x1 : 92, y1: 227, hw : 31, hh : 36},
+            upperArmL : { x1 : 25, y1: 172, hw : 22, hh : 38},
+            upperArmR : { x1 : 158, y1: 175, hw : 22, hh : 38},
+            lowerArmL : { x1 : 20, y1: 241, hw : 20, hh : 38},
+            lowerArmR : { x1 : 163, y1: 243, hw : 20, hh : 38},
+            upperLegL : { x1 : 74, y1: 272, hw : 18, hh : 31},
+            upperLegR : { x1 : 109, y1: 272, hw : 18, hh : 31},
+            lowerLegL : { x1 : 73, y1: 334, hw : 13, hh : 40},
+            lowerLegR : { x1 : 111, y1: 334 , hw : 13, hh : 40}
         },
         // Adjacency Lists
         joints : {
           head : {
-            torso1 : { x : 0, y : 0, lowerAngle : -40, upperAngle : 40}
+            torso1 : { x : 92, y : 114, lowerAngle : -40, upperAngle : 40}
           },
           torso1 : {
-            upperArmL : { x : -18, y : 20, lowerAngle : -85, upperAngle : 130},
-            upperArmR : { x : 18, y : 20, lowerAngle : -130, upperAngle : 85},
-            torso2 : { x : 0, y : 35, lowerAngle : -25, upperAngle : 25}
+            upperArmL : { x : 25, y : 155, lowerAngle : -85 + 90 , upperAngle : 130 + 90},
+            upperArmR : { x : 158, y : 155, lowerAngle : -130 - 90, upperAngle : 85 - 90},
+            torso2 : { x : 92, y : 174, lowerAngle : -25, upperAngle : 25}
           },
           upperArmL : {
-            lowerArmL : { x : -45, y : 20, lowerAngle : -130, upperAngle : 10 }
+            lowerArmL : { x : 25, y : 198, lowerAngle : -130, upperAngle : 10 }
           },
           upperArmR : {
-            lowerArmR : { x : 45, y : 20, lowerAngle : -10, upperAngle : 130 }
+            lowerArmR : { x : 158, y : 198, lowerAngle : -10, upperAngle : 130 }
           },
           torso2 : {
-            torso3 : { x : 0, y : 50, lowerAngle : -25, upperAngle : 25}
+            torso3 : { x : 91, y : 213, lowerAngle : -25, upperAngle : 25}
           },
           torso3 : {
-            upperLegL : { x : -8, y : 72, lowerAngle : -25, upperAngle : 45},
-            upperLegR : { x : 8, y : 72, lowerAngle : -45, upperAngle : 25}
+            upperLegL : { x : 73, y : 251, lowerAngle : -25, upperAngle : 45},
+            upperLegR : { x : 108, y : 251, lowerAngle : -45, upperAngle : 25}
           },
           upperLegL : {
-            lowerLegL : { x : -8, y : 105, lowerAngle : -25, upperAngle : 115 }
+            lowerLegL : { x : 73, y : 295, lowerAngle : -25, upperAngle : 115 }
           },
           upperLegR : {
-            lowerLegR : { x : 8, y : 105, lowerAngle : -115, upperAngle : 25 }
+            lowerLegR : { x : 111, y : 295, lowerAngle : -115, upperAngle : 25 }
           }
         }
     },
@@ -132,16 +132,17 @@ Flexidoll.prototype  = {
       var body = PhysWorker.world.CreateBody(bd);
 
       var userData = {};
+      var shape = new b2PolygonShape();
+      shape.SetAsBox(halfWidth * this.size, halfHeight * this.size);
+      userData.halfWidth = halfWidth * this.size;
       if (this.skeleton.limbs[v].head) {
-        var shape = new b2CircleShape( halfHeight * this.size );
+        //var shape = new b2CircleShape( halfHeight * this.size );
         userData.head = true;
-        userData.halfWidth = halfHeight * this.size;
+        //userData.halfWidth = halfHeight * this.size;
         this.headBody = body;
       } else {
-        var shape = new b2PolygonShape();
-        shape.SetAsBox(halfWidth * this.size, halfHeight * this.size);
-        userData.halfWidth = halfWidth * this.size;
       }
+      userData.class = v;
       userData.halfHeight = halfHeight * this.size;
       userData.type = shape.GetType();
       userData.resourceId = PhysWorker.getContractId();
@@ -210,7 +211,7 @@ PhysWorker = {
                 var worldManifold = new b2WorldManifold;
                 contact.GetWorldManifold(worldManifold);
                 var extraImpulse = worldManifold.m_normal.Copy();
-                extraImpulse.Multiply(1.3);
+                extraImpulse.Multiply(15);
                 var bodyA = fixtureA.GetBody();
                 var bodyB = fixtureB.GetBody();
                 bodyA.ApplyImpulse( extraImpulse,  worldManifold.m_points[0] );
