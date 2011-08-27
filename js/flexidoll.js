@@ -24,6 +24,53 @@ jQuery(function(){
             Physics.init();
 
             Physics.execInWorkerContext(
+                function() {
+                    var fixDef = new b2FixtureDef;
+                    fixDef.density = 1.0;
+                    fixDef.friction = 0.5;
+                    fixDef.restitution = 0.2;
+
+                    var bodyDef = new b2BodyDef;
+
+                    //create ground
+                    bodyDef.type = b2Body.b2_staticBody;
+                    fixDef.shape = new b2PolygonShape;
+                    //horizontal lines
+                    //fixDef.shape.SetAsBox(PhysWorker.worldWidth / 2, 1);
+                    fixDef.shape.SetAsBox(1.56, PhysWorker.worldHeight / 2);
+                    //bodyDef.position.Set(PhysWorker.worldWidth / 2, PhysWorker.worldHeight - 1);
+                    bodyDef.position.Set(PhysWorker.worldWidth / 2, PhysWorker.worldHeight );
+                    var body = PhysWorker.world.CreateBody(bodyDef);
+                    body.CreateFixture(fixDef);
+                    body.SetAngle(Math.PI / 2);
+                    PhysWorker.adjustUserData(body);
+
+                    //bodyDef.position.Set(PhysWorker.worldWidth / 2, 0 + 1);
+                    bodyDef.position.Set(PhysWorker.worldWidth / 2, 0);
+                    body = PhysWorker.world.CreateBody(bodyDef);
+                    body.CreateFixture(fixDef);
+                    body.SetAngle(-Math.PI / 2);
+                    PhysWorker.adjustUserData(body);
+
+                    //vertical lines
+                    fixDef.shape.SetAsBox(1.56, PhysWorker.worldHeight / 2);
+                    //bodyDef.position.Set(0 + 1, PhysWorker.worldHeight / 2);
+                    bodyDef.position.Set(0, PhysWorker.worldHeight / 2);
+                    body = PhysWorker.world.CreateBody(bodyDef);
+                    body.CreateFixture(fixDef);
+                    body.SetAngle(-Math.PI);
+                    PhysWorker.adjustUserData(body);
+
+                    //bodyDef.position.Set(PhysWorker.worldWidth - 1, PhysWorker.worldHeight / 2);
+                    bodyDef.position.Set(PhysWorker.worldWidth , PhysWorker.worldHeight / 2);
+                    body = PhysWorker.world.CreateBody(bodyDef);
+                    body.CreateFixture(fixDef);
+                    PhysWorker.adjustUserData(body);
+                }
+            );
+
+
+            Physics.execInWorkerContext(
                 function(name){
                   PhysWorker.player1 = new Flexidoll(name);
                   return name
@@ -44,6 +91,18 @@ jQuery(function(){
                 },
                 'player2'
             )
+
+            Physics.execInWorkerContext(
+                function(name){
+                  new Flexidoll(name);
+                  return name
+                },
+                function(event, name) {
+                  jQuery('<div class="hp ' + name + '"></div>').progressbar( { value : 100} ).appendTo(UI.jIndicators);
+                },
+                'player3'
+            )
+
 
 
             Renderer.init();
@@ -91,8 +150,8 @@ jQuery(function(){
         defaultFixDef : null,
         defaultBodyDef : null,
         viewPort : null,
-        worldWidth : 15,
-        worldHeight : 15,
+        worldWidth : 30,
+        worldHeight : 30,
         getContractId : (function() {
             var id = 0;
             return function() {
@@ -123,30 +182,6 @@ jQuery(function(){
             var self = this;
             self.execInWorkerContext(
                 function() {
-                    var fixDef = new b2FixtureDef;
-                    fixDef.density = 1.0;
-                    fixDef.friction = 0.5;
-                    fixDef.restitution = 0.2;
-
-                    var bodyDef = new b2BodyDef;
-
-                    //create ground
-                    bodyDef.type = b2Body.b2_staticBody;
-                    fixDef.shape = new b2PolygonShape;
-                    //horizontal lines
-                    fixDef.shape.SetAsBox(PhysWorker.worldWidth / 2, 1);
-                    bodyDef.position.Set(PhysWorker.worldWidth / 2, PhysWorker.worldHeight + 1);
-                    PhysWorker.world.CreateBody(bodyDef).CreateFixture(fixDef);
-                    bodyDef.position.Set(PhysWorker.worldWidth / 2, 0 - 1);
-                    PhysWorker.world.CreateBody(bodyDef).CreateFixture(fixDef);
-
-                    //vertical lines
-                    fixDef.shape.SetAsBox(1, PhysWorker.worldHeight / 2);
-                    bodyDef.position.Set(0 - 1, PhysWorker.worldHeight / 2);
-                    PhysWorker.world.CreateBody(bodyDef).CreateFixture(fixDef);
-                    bodyDef.position.Set(PhysWorker.worldWidth + 1, PhysWorker.worldHeight / 2);
-                    var body = PhysWorker.world.CreateBody(bodyDef).CreateFixture(fixDef);
-
                     PhysWorker.start();
                 }
             );
@@ -258,7 +293,7 @@ jQuery(function(){
 
             var jShape = jQuery('<div class="shape"></div>')
               .addClass(bodyData.class)
-              .css('background-image', 'url(/images/'+bodyData.class+'.png?ts='+Date.now()+')')
+              //.css('background-image', 'url(/images/'+bodyData.class+'.png?ts='+Date.now()+')')
               .width(2 * bodyData.halfWidth * baseScale )
               .height(2 * bodyData.halfHeight * baseScale )
               .css('left', -bodyData.halfWidth* baseScale + 'px')

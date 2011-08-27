@@ -73,14 +73,59 @@ body {
     background-position : center;
     /*background-color: red;*/
 }
-.shape.torso1::after {
-  width : 100px;
-  height : 100px;
-  content : "";
-  position : absolute;
-  top : 0;
-  left : 0;
-  /*background : red;*/
+/*.shape.torso1::after {*/
+  /*width : 100px;*/
+  /*height : 100px;*/
+  /*content : "";*/
+  /*position : absolute;*/
+  /*top : 0;*/
+  /*left : 0;*/
+  /*[>background : red;<]*/
+/*}*/
+.shape.torso1{
+  background-image : url(/images/torso1.png);
+}
+.shape.torso2{
+  background-image : url(/images/torso2.png);
+}
+.shape.torso3{
+  background-image : url(/images/torso3.png);
+}
+.shape.head{
+  background-image : url(/images/head.png);
+}
+.shape.lowerArmL{
+  background-image : url(/images/lowerArmL.png);
+}
+.shape.lowerArmR{
+  background-image : url(/images/lowerArmR.png);
+}
+.shape.upperArmL{
+  background-image : url(/images/upperArmL.png);
+}
+.shape.upperArmR{
+  background-image : url(/images/upperArmR.png);
+}
+.shape.lowerLegL{
+  background-image : url(/images/lowerLegL.png);
+}
+.shape.lowerLegR{
+  background-image : url(/images/lowerLegR.png);
+}
+.shape.upperLegL{
+  background-image : url(/images/upperLegL.png);
+}
+.shape.upperLegR{
+  background-image : url(/images/upperLegR.png);
+}
+.shape.ground {
+  /*background-color : #CCCCCC;*/
+  background :url(/images/ground_6.png), url(/images/ground_2.png),  url(/images/ground_4.png), url(/images/ground_3.png), url(/images/ground_5.png),url(/images/ground_1.png);
+  /*background-size : 100%;*/
+  background-size : auto;
+  background-repeat : repeat-y;
+  box-sizing : border-box;
+  /*border : 3px solid black;*/
 }
 .effect {
     width : 30px;

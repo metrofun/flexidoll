@@ -169,7 +169,7 @@ Flexidoll.prototype  = {
       jd.enableMotor = true;
       jd.motorSpeed = 0;
       jd.enableLimit = true;
-      jd.maxMotorTorque = 0.01;
+      jd.maxMotorTorque = 0.1;
       jd.lowerAngle = jointData.lowerAngle / (180/Math.PI);
       jd.upperAngle = jointData.upperAngle / (180/Math.PI);
       jd.Initialize(bodyA, bodyB, new b2Vec2(jointData.x * this.size + this.offsetX, jointData.y * this.size + this.offsetY));
@@ -193,6 +193,28 @@ PhysWorker = {
             return (id++ % 999999999) + "";
         }
     })(),
+    adjustUserData : function( body ) {
+      if (fixture = body.GetFixtureList()) {
+        var shape = fixture.GetShape(), halfWidth, halfHeight;
+        switch (shape.GetType()) {
+          case e_polygonShape : 
+            var topLeftVertex = shape.GetVertices()[0];
+            halfWidth = Math.abs(topLeftVertex.x);
+            halfHeight = Math.abs(topLeftVertex.y);
+            break;
+          case e_circleShape:
+            halfWidth = halfHeight = shape.m_radius;
+        }
+
+        var userData = body.GetUserData() || {};
+        userData.halfWidth = halfWidth;
+        userData.halfHeight = halfHeight;
+        userData.type = shape.GetType();
+        userData.resourceId = PhysWorker.getContractId();
+        userData.class = 'ground';
+        body.SetUserData(userData);
+      }
+    },
     init : function() {
         var self = this;
 
@@ -282,7 +304,6 @@ PhysWorker = {
     start : function() {
         var self = this;
         var step = function(){
-          var angleError;
           for (var jj = self.world.GetJointList();jj;jj = jj.GetNext()) {
             jj.SetMotorSpeed(- 1 * jj.GetJointAngle());
           }
@@ -334,17 +355,17 @@ PhysWorker = {
           self.world.Step(self.worldTimeStepS, 10, 10);
           self.world.ClearForces();
 
-          if (self.collisions.length) {
-            self.worldTimeStepS = 1 / 180;
+          //if (self.collisions.length) {
+            //self.worldTimeStepS = 1 / 180;
 
-            clearTimeout(self.adrenalineModeId);
-            self.adrenalineModeId = setTimeout(
-              function() {
-                self.worldTimeStepS = 1 / 60;
-              },
-              self.adrenalineModeMs
-            )
-          }
+            //clearTimeout(self.adrenalineModeId);
+            //self.adrenalineModeId = setTimeout(
+              //function() {
+                //self.worldTimeStepS = 1 / 60;
+              //},
+              //self.adrenalineModeMs
+            //)
+          //}
 
           postMessage({
             data : {
