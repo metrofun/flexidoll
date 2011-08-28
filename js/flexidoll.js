@@ -1,13 +1,23 @@
 "usestrict";
 jQuery(function(){
-    var stats = new Stats();
-    jQuery('.counter').append( stats.domElement );
+if (!window['requestAnimationFrame'])
+  window['requestAnimationFrame'] = (function(){
+    return  window['webkitRequestAnimationFrame'] ||
+    window['mozRequestAnimationFrame']    ||
+    window['oRequestAnimationFrame']      ||
+    window['msRequestAnimationFrame']     ||
+    function(/* function */ callback, /* DOMElement */ element){
+      window.setTimeout(callback, 1000 / 60);
+    };
+  })();
+    //var stats = new Stats();
+    //jQuery('.counter').append( stats.domElement );
 
-    setInterval(function () {
+    //setInterval(function () {
 
-        stats.update();
+        //stats.update();
 
-    }, 1000/60);
+    //}, 1000/60);
 
 
     //jQuery(document).bind('debug', function(event, data){ console.debug(data); });
@@ -92,16 +102,16 @@ jQuery(function(){
                 'player2'
             )
 
-            Physics.execInWorkerContext(
-                function(name){
-                  new Flexidoll(name);
-                  return name
-                },
-                function(event, name) {
-                  jQuery('<div class="hp ' + name + '"></div>').progressbar( { value : 100} ).appendTo(UI.jIndicators);
-                },
-                'player3'
-            )
+            //Physics.execInWorkerContext(
+                //function(name){
+                  //new Flexidoll(name);
+                  //return name
+                //},
+                //function(event, name) {
+                  //jQuery('<div class="hp ' + name + '"></div>').progressbar( { value : 100} ).appendTo(UI.jIndicators);
+                //},
+                //'player3'
+            //)
 
 
 
@@ -115,8 +125,10 @@ jQuery(function(){
         update : function(data) {
             Physics.viewPort = data.viewPort;
             Settings.scale = Renderer.sceneWidth / data.viewPort[2];
-            Renderer.update(data.bodiesState);
-            Renderer.drawGrid();
+            window.requestAnimationFrame(function(){
+              Renderer.update(data.bodiesState);
+              Renderer.drawGrid();
+            });
             if ( data.collisions.length ) {
                 Renderer.drawAdrenalineEffect();
                 for ( var i=0, len = data.collisions.length; i < len; i++ ) {
@@ -150,8 +162,8 @@ jQuery(function(){
         defaultFixDef : null,
         defaultBodyDef : null,
         viewPort : null,
-        worldWidth : 30,
-        worldHeight : 30,
+        worldWidth : 25,
+        worldHeight : 25,
         getContractId : (function() {
             var id = 0;
             return function() {
@@ -224,6 +236,7 @@ jQuery(function(){
         canvasCtx : null,
         gridWidth : undefined,
         gridHeight: undefined,
+        effectNode : null,
         init : function() {
             var self = this;
             self.jScene = jQuery('.scene');
@@ -244,6 +257,7 @@ jQuery(function(){
             self.gridHeight = Physics.worldHeight / colNum; 
             //self.drawGrid();
             self.initControls();
+            self.jEffectNode = jQuery('<div class="effect"></div>');
             Physics.execInWorkerContext(
                 function(event, data) {
                     var renderData = [];
@@ -275,15 +289,15 @@ jQuery(function(){
             );
         },
         update : function(bodiesState) {
-            var self = this;
+          var self = this;
             var scale = Settings.scale;
             var baseScale = self.baseScale
             for (var i=0, len = bodiesState.length; i < len; i++) {
-                var bodyState = bodiesState[i],
-                    position = bodyState.position,
-                    angle = bodyState.angle,
-                    bodyNode = Playground.actorNodeList[bodyState.resourceId];
-                bodyNode.style.WebkitTransform = 'translate(' + ( ( position.x  - Physics.viewPort[0]) * scale) + 'px, ' + ( ( position.y - Physics.viewPort[1]) * scale) + 'px) rotate(' + ( angle ) + 'rad) scale(' +  scale / baseScale+ ')';
+              var bodyState = bodiesState[i],
+              position = bodyState.position,
+              angle = bodyState.angle,
+              bodyNode = Playground.actorNodeList[bodyState.resourceId];
+              bodyNode.style.OTransform = bodyNode.style.WebkitTransform = 'translate(' + ( ( position.x  - Physics.viewPort[0]) * scale) + 'px, ' + ( ( position.y - Physics.viewPort[1]) * scale) + 'px) rotate(' + ( angle ) + 'rad) scale(' +  scale / baseScale+ ')';
             }
         },
         initBody : function(bodyData) {
@@ -382,23 +396,26 @@ jQuery(function(){
         drawCollisionEffect : function(collision) {
             var jEffectNode;
             var scale = Settings.scale;
+            //TODO cache
+            var jEffectNode = this.jEffectNode.clone();
+            jEffectNode
+              .css('-webkit-transform', 'translate(' + ( (collision.pos.x - Physics.viewPort[0]) * scale ) + 'px, ' + ( (collision.pos.y - Physics.viewPort[1]) * scale ) + 'px)')
+              .addClass(collision.type)
+              .one('webkitAnimationEnd', function() {jQuery(this).remove(); });
             Renderer.jScene.append(
-                jEffectNode = jQuery('<div class="effect"></div>')
-                .css('-webkit-transform', 'translate(' + ( (collision.pos.x - Physics.viewPort[0]) * scale ) + 'px, ' + ( (collision.pos.y - Physics.viewPort[1]) * scale ) + 'px)')
+              jEffectNode
             );
-            jEffectNode.addClass(collision.type);
-            setTimeout(
-                function() {
-                    jEffectNode.addClass('animate');
-                },
-                0
-            )
-            setTimeout(
-                function() {
-                    jEffectNode.remove();
-                },
-                300
-            )
+            (function chgBgImg(node, num){
+              node.style.backgroundImage = 'url(/images/effect_'+num+'.png)';
+              if ( num < 5) {
+                setTimeout(
+                  function() {
+                    chgBgImg(node, num+1);
+                  },
+                  60
+                );
+              }
+            })(jEffectNode.get(0), 1);
         },
         drawAdrenalineEffect : function() {
             var self = this;

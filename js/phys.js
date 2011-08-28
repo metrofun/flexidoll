@@ -1,5 +1,5 @@
 //var box2d = new Worker('Box2dWeb-2.1a.3b.js');
-importScripts('Box2dWeb-2.1a.3b.js');
+importScripts('Box2dWeb-2.1.a.3.js');
 
 var  b2Vec2 = Box2D.Common.Math.b2Vec2
     ,b2BodyDef = Box2D.Dynamics.b2BodyDef
@@ -71,8 +71,8 @@ Flexidoll.prototype  = {
             torso1 : { x : 92, y : 114, lowerAngle : -40, upperAngle : 40}
           },
           torso1 : {
-            upperArmL : { x : 25, y : 155, lowerAngle : -85 + 90 , upperAngle : 130 + 90},
-            upperArmR : { x : 158, y : 155, lowerAngle : -130 - 90, upperAngle : 85 - 90},
+            upperArmL : { x : 25, y : 155, lowerAngle : -85 + 90 , upperAngle : 130 + 35},
+            upperArmR : { x : 158, y : 155, lowerAngle : -130 - 35, upperAngle : 85 - 90},
             torso2 : { x : 92, y : 174, lowerAngle : -25, upperAngle : 25}
           },
           upperArmL : {
