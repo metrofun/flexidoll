@@ -16,7 +16,7 @@ body {
     background : #333333;
     position : relative;
     width :600px;
-    height : 600px;
+    height : 600px;0
     position : relative;
     -webkit-transform: translateZ(0);
 }
@@ -58,20 +58,12 @@ body {
     width : 100%;
     height : 100%;
 }
-.controls {
-    float : left;
-    width : 400px;
-}
-.slider {
-    width : 100px;
-}
 .shape {
     position : absolute;
     background-size : 100% 100%;
     /*background-origin: border-box;*/
-    /*-webkit-transform: translate3d(0, 0, 0);*/
     background-position : center;
-    /*background-color: red;*/
+    /*background-color: blue;*/
 }
 /*.shape.torso1::after {*/
   /*width : 100px;*/
@@ -127,22 +119,57 @@ body {
   background-repeat : repeat-y;
 }
 .effect {
-  width : 30px;
-  height : 30px;
   /*content : "BLOCK";*/
   position : absolute;
   background-size : 100%;
   background-repeat : no-repeat;
-  -webkit-animation-duration: 300ms;
-  -webkit-animation-name: slidein;
+  /*-webkit-animation-duration: 300ms;*/
+  /*-webkit-animation-name: slidein;*/
+  width: 75px;
+  height : 75px;
+  margin-left : -37.5px;
+  margin-top : -37.5px;
 }
 @-webkit-keyframes slidein {
   0% {
+    width : 25px;
+    height : 25px;
+    margin-left : -12.5px;
+    margin-top : -12.5px;
   }
   100% {
-    width: 60px;
-    height : 60px;
+    width: 75px;
+    height : 75px;
+    margin-left : -37.5px;
+    margin-top : -37.5px;
   }
+}
+.pow.frame1 {
+  background-image : url('/images/1.png');
+}
+.pow.frame2 {
+  background-image : url('/images/2.png');
+}
+.pow.frame3 {
+  background-image : url('/images/3.png');
+}
+.pow.frame4 {
+  background-image : url('/images/4.png');
+}
+.block.frame1 {
+  background-image : url('/images/effect_1.png');
+}
+.block.frame2 {
+  background-image : url('/images/effect_2.png');
+}
+.block.frame3 {
+  background-image : url('/images/effect_3.png');
+}
+.block.frame4 {
+  background-image : url('/images/effect_4.png');
+}
+.block.frame5 {
+  background-image : url('/images/effect_5.png');
 }
 .indicators{
   width : 600px;

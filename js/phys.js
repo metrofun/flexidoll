@@ -1,24 +1,36 @@
 //var box2d = new Worker('Box2dWeb-2.1a.3b.js');
 importScripts('Box2dWeb-2.1.a.3.js');
 
-var  b2Vec2 = Box2D.Common.Math.b2Vec2
-    ,b2BodyDef = Box2D.Dynamics.b2BodyDef
-    ,b2Body = Box2D.Dynamics.b2Body
-    ,b2FixtureDef = Box2D.Dynamics.b2FixtureDef
-    ,b2Fixture = Box2D.Dynamics.b2Fixture
-    ,b2World = Box2D.Dynamics.b2World
-    ,b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
-    ,b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
-    ,e_circleShape = Box2D.Collision.Shapes.b2Shape.e_circleShape
-    ,e_polygonShape = Box2D.Collision.Shapes.b2Shape.e_polygonShape
-    ,b2ContactListener = Box2D.Dynamics.b2ContactListener
-    ,b2RevoluteJointDef =  Box2D.Dynamics.Joints.b2RevoluteJointDef
-    ,b2WorldManifold = Box2D.Collision.b2WorldManifold
-    ;
+var
+  b2Vec2 = Box2D.Common.Math.b2Vec2,
+  b2BodyDef = Box2D.Dynamics.b2BodyDef,
+  b2Body = Box2D.Dynamics.b2Body,
+  b2FixtureDef = Box2D.Dynamics.b2FixtureDef,
+  b2Fixture = Box2D.Dynamics.b2Fixture,
+  b2World = Box2D.Dynamics.b2World,
+  b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape,
+  b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
+  e_circleShape = Box2D.Collision.Shapes.b2Shape.e_circleShape,
+  e_polygonShape = Box2D.Collision.Shapes.b2Shape.e_polygonShape,
+  b2ContactListener = Box2D.Dynamics.b2ContactListener,
+  b2RevoluteJointDef =  Box2D.Dynamics.Joints.b2RevoluteJointDef,
+  b2WorldManifold = Box2D.Collision.b2WorldManifold,
 
 debug = function(data) {
+  if (typeof data == 'object') {
+    var obj = {};
+    for (var i in data){
+      try{
+        obj[i] = JSON.parse(JSON.stringify(data[i]));
+      } catch(e) {
+        obj[i] = '[' + typeof data[i]+']';
+      }
+    }
+  } else {
+    obj = data;
+  }
   postMessage({
-    data : data,
+    data : obj,
     contractId : 'debug',
     live : true
   });
@@ -39,7 +51,7 @@ Flexidoll = function(name) {
       }
     }
 }
-Flexidoll.prototype  = {
+Flexidoll.prototype = {
   name : undefined,
     groups : 0,
     hp : 100,
@@ -52,7 +64,23 @@ Flexidoll.prototype  = {
     offsetY : undefined,
     skeleton : {
         limbs : {
-            head : { x1 : 92, y1: 63, hw : 44, hh : 63, head : true},
+            head : {
+              x1 : 92,
+              y1: 63,
+              hw : 44,
+              hh : 63,
+              vertices :  [
+                new b2Vec2(-22, -51),
+                new b2Vec2(32, -40),
+                new b2Vec2(43, -21),
+                new b2Vec2(35, 42),
+                new b2Vec2(16, 62),
+                new b2Vec2(-15, 62),
+                new b2Vec2(-35, 41),
+                new b2Vec2(-42, -23)
+              ],
+              head : true
+            },
             torso1 : { x1 : 92, y1: 151, hw : 57, hh : 27},
             torso2 : { x1 : 92, y1: 186, hw : 39, hh : 30},
             torso3 : { x1 : 92, y1: 227, hw : 31, hh : 36},
@@ -133,16 +161,24 @@ Flexidoll.prototype  = {
 
       var userData = {};
       var shape = new b2PolygonShape();
-      shape.SetAsBox(halfWidth * this.size, halfHeight * this.size);
-      userData.halfWidth = halfWidth * this.size;
+      var vertices = this.skeleton.limbs[v].vertices;
+      if (typeof vertices == 'undefined') {
+        shape.SetAsBox(halfWidth * this.size, halfHeight * this.size);
+      } else {
+        var verticesCopy = [];
+        for (var i=0,len=vertices.length; i < len; i++) {
+          verticesCopy.push(vertices[i].Copy());
+          verticesCopy[i].Multiply(this.size);
+        }
+        shape.SetAsArray(verticesCopy, verticesCopy.length);
+      }
       if (this.skeleton.limbs[v].head) {
-        //var shape = new b2CircleShape( halfHeight * this.size );
         userData.head = true;
-        //userData.halfWidth = halfHeight * this.size;
         this.headBody = body;
       } else {
       }
       userData.class = v;
+      userData.halfWidth = halfWidth * this.size;
       userData.halfHeight = halfHeight * this.size;
       userData.type = shape.GetType();
       userData.resourceId = PhysWorker.getContractId();
@@ -157,7 +193,14 @@ Flexidoll.prototype  = {
       fixtureDef.filter.categoryBits = 1 << 1;
       fixtureDef.filter.maskBits = 1 | ( 1 << 1 );
 
-      body.CreateFixture(fixtureDef);
+      var fixt = body.CreateFixture(fixtureDef);
+      //if (typeof vertices != 'undefined') {
+        //var w = ( fixt.m_aabb.lowerBound.x - fixt.m_aabb.upperBound.x ) / 2; 
+        //var h = ( fixt.m_aabb.lowerBound.y - fixt.m_aabb.upperBound.y ) / 2; 
+        //userData.halfWidth = Math.abs(w);
+        //userData.halfHeight = Math.abs(h);
+        //debug(userData);
+      //}
       body.SetUserData(userData);
 
       return body;
@@ -193,7 +236,8 @@ PhysWorker = {
             return (id++ % 999999999) + "";
         }
     })(),
-    adjustUserData : function( body ) {
+    //TODO hardcoded for grounds
+    adjustUserData : function( body, class) {
       if (fixture = body.GetFixtureList()) {
         var shape = fixture.GetShape(), halfWidth, halfHeight;
         switch (shape.GetType()) {
@@ -211,7 +255,7 @@ PhysWorker = {
         userData.halfHeight = halfHeight;
         userData.type = shape.GetType();
         userData.resourceId = PhysWorker.getContractId();
-        userData.class = 'ground';
+        userData.class = class;
         body.SetUserData(userData);
       }
     },
@@ -228,65 +272,67 @@ PhysWorker = {
         contactListener.BeginContact = function (contact) {
             var fixtureA = contact.GetFixtureA();
             var fixtureB = contact.GetFixtureB();
-            //throw fixtureA.GetFilterData().categoryBits;
             if ((fixtureA.GetFilterData().categoryBits != 1) && (fixtureB.GetFilterData().categoryBits != 1)) {
                 var worldManifold = new b2WorldManifold;
                 contact.GetWorldManifold(worldManifold);
                 var extraImpulse = worldManifold.m_normal.Copy();
                 extraImpulse.Multiply(15);
+
                 var bodyA = fixtureA.GetBody();
                 var bodyB = fixtureB.GetBody();
                 bodyA.ApplyImpulse( extraImpulse,  worldManifold.m_points[0] );
                 bodyB.ApplyImpulse( extraImpulse.GetNegative(),  worldManifold.m_points[0] );
 
-                var bodyAUserData = bodyA.GetUserData();
-                var bodyBUserData = bodyB.GetUserData();
-                var type = 'block';
-                if (typeof bodyAUserData.head != 'undefined') {
-                  var fxdl = bodyAUserData.flexidoll;
-                  fxdl.hp -= 10;
-                  type = '';
-                  
-                  self.flexidollsState[fxdl.name] = fxdl.hp;
+                var contactedBodies = [bodyA, bodyB];
+                var noPow = true;
 
-                  if (!fxdl.hp) {
-                    for ( var joint = PhysWorker.world.GetJointList(); joint; joint= joint.GetNext() ) {
-                      if (( joint.GetBodyA().GetUserData().flexidoll == fxdl) || ( joint.GetBodyA().GetUserData() == fxdl )) {
-                        PhysWorker.world.DestroyJoint(joint);
-                      }
-                    }
-                  }
-                }
-                if (typeof bodyBUserData.head != 'undefined') {
-                  var fxdl = bodyBUserData.flexidoll;
-                  fxdl.hp -= 10;
-                  type = '';
+                for (var i in contactedBodies) {
+                  var body = contactedBodies[i];
+                  var userData = body.GetUserData();
 
-                  self.flexidollsState[fxdl.name] = fxdl.hp;
+                  if (typeof userData.head != 'undefined') {
+                    noPow = false;
+                    var fxdl = userData.flexidoll;
+                    //relative to upper left corner
+                    var relativePoint = body.GetLocalPoint(worldManifold.m_points[0]).Copy();
+                    relativePoint.Add(new b2Vec2(userData.halfWidth, userData.halfHeight));
+                    self.collisions.push({
+                      pos : relativePoint,
+                      type : 'pow',
+                      anchorResourceId : userData.resourceId
+                    });
 
-                  if (!fxdl.hp) {
+                    fxdl.hp -= 10;
 
-                    for ( var body = PhysWorker.world.GetBodyList(); body ; body = body.GetNext() ) {
-                      var userData = body.GetUserData();
-                      if (( userData ) && (userData.flexidoll == fxdl)) {
-                        delete userData.head;
-                        for ( var jointEdge = body.GetJointList(); jointEdge; jointEdge = jointEdge.next ) {
-                          PhysWorker.world.DestroyJoint(jointEdge.joint);
+                    self.flexidollsState[fxdl.name] = fxdl.hp;
+
+                    if (!fxdl.hp) {
+
+                      for ( var body = PhysWorker.world.GetBodyList(); body ; body = body.GetNext() ) {
+                        var userData = body.GetUserData();
+                        if (( userData ) && (userData.flexidoll == fxdl)) {
+                          delete userData.head;
+                          for ( var jointEdge = body.GetJointList(); jointEdge; jointEdge = jointEdge.next ) {
+                            self.collisions.push({
+                              pos : jointEdge.joint.GetAnchorA(),
+                              type : 'pow',
+                              anchorResourceId : -1
+                            });
+                            PhysWorker.world.DestroyJoint(jointEdge.joint);
+                          }
                         }
                       }
                     }
-                    //for ( var joint = PhysWorker.world.GetJointList(); joint; joint= joint.GetNext() ) {
-                      //if (( joint.GetBodyA().GetUserData().flexidoll == fxdl) || ( joint.GetBodyA().GetUserData() == fxdl )) {
-                        //PhysWorker.world.DestroyJoint(joint);
-                      //}
-                    //}
                   }
                 }
 
-                self.collisions.push({
+                if (noPow) {
+                  self.collisions.push({
                     pos : worldManifold.m_points[0],
-                    type : type
-                });
+                    type : 'block',
+                    anchorResourceId : -1
+                  });
+                }
             }
         }
 

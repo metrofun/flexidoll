@@ -24,12 +24,12 @@ if (!window['requestAnimationFrame'])
 
     Playground = {
         //audio : new Audio('/sounds/jab.mp3'),
-        actorNodeList : {},
         callbacks : {},
         init : function() {
             //this.audio.preload = "auto";
             //this.audio.volume = 0.5;
             //console.debug(this.audio);
+            this.initControls();
             UI.init();
             Physics.init();
 
@@ -53,14 +53,14 @@ if (!window['requestAnimationFrame'])
                     var body = PhysWorker.world.CreateBody(bodyDef);
                     body.CreateFixture(fixDef);
                     body.SetAngle(Math.PI / 2);
-                    PhysWorker.adjustUserData(body);
+                    PhysWorker.adjustUserData(body, 'ground down');
 
                     //bodyDef.position.Set(PhysWorker.worldWidth / 2, 0 + 1);
                     bodyDef.position.Set(PhysWorker.worldWidth / 2, 0);
                     body = PhysWorker.world.CreateBody(bodyDef);
                     body.CreateFixture(fixDef);
                     body.SetAngle(-Math.PI / 2);
-                    PhysWorker.adjustUserData(body);
+                    PhysWorker.adjustUserData(body, 'ground up');
 
                     //vertical lines
                     fixDef.shape.SetAsBox(1.56, PhysWorker.worldHeight / 2);
@@ -69,13 +69,13 @@ if (!window['requestAnimationFrame'])
                     body = PhysWorker.world.CreateBody(bodyDef);
                     body.CreateFixture(fixDef);
                     body.SetAngle(-Math.PI);
-                    PhysWorker.adjustUserData(body);
+                    PhysWorker.adjustUserData(body, 'ground left');
 
                     //bodyDef.position.Set(PhysWorker.worldWidth - 1, PhysWorker.worldHeight / 2);
                     bodyDef.position.Set(PhysWorker.worldWidth , PhysWorker.worldHeight / 2);
                     body = PhysWorker.world.CreateBody(bodyDef);
                     body.CreateFixture(fixDef);
-                    PhysWorker.adjustUserData(body);
+                    PhysWorker.adjustUserData(body, 'ground right');
                 }
             );
 
@@ -85,7 +85,7 @@ if (!window['requestAnimationFrame'])
                   PhysWorker.player1 = new Flexidoll(name);
                   return name
                 },
-                function(event, name) {
+                function(name) {
                   jQuery('<div class="hp ' + name + '"></div>').progressbar( { value : 100} ).appendTo(UI.jIndicators);
                 },
                 'player1'
@@ -96,7 +96,7 @@ if (!window['requestAnimationFrame'])
                   new Flexidoll(name);
                   return name
                 },
-                function(event, name) {
+                function(name) {
                   jQuery('<div class="hp ' + name + '"></div>').progressbar( { value : 100} ).appendTo(UI.jIndicators);
                 },
                 'player2'
@@ -107,7 +107,7 @@ if (!window['requestAnimationFrame'])
                   //new Flexidoll(name);
                   //return name
                 //},
-                //function(event, name) {
+                //function(name) {
                   //jQuery('<div class="hp ' + name + '"></div>').progressbar( { value : 100} ).appendTo(UI.jIndicators);
                 //},
                 //'player3'
@@ -116,8 +116,42 @@ if (!window['requestAnimationFrame'])
 
 
             Renderer.init();
-            Playground.callbacks['lifecycle'] = function(event, data){ Playground.update(data)};
-            //jQuery(document).bind('lifecycle', function(event, data){ Playground.update(data)});
+            Playground.callbacks['lifecycle'] = function(data){ Playground.update(data)};
+        },
+        initControls : function() {
+            var self = this;
+
+            jQuery(document).keydown(function(event){
+                var motionVec2;
+                switch (event.which) {
+                //down
+                case 40 : 
+                    motionVec2 = new b2Vec2(0, 5);
+                    break;
+                    //up
+                case 38 : 
+                    motionVec2 = new b2Vec2(0, -5);
+                    break;
+                    //left
+                case 37 : 
+                    motionVec2 = new b2Vec2(-5, 0);
+                    break;
+                    //right
+                case 39 : 
+                    motionVec2 = new b2Vec2(5, 0);
+                    break;
+                }
+                //console.debug(motionVec2);
+                if (motionVec2)
+                    Physics.execInWorkerContext(
+                        function(motionVec2) {
+                            PhysWorker.player1.applyImpulse(motionVec2);
+                        },
+                        null,
+                        motionVec2
+                    );
+                    return false;
+            });
         },
         start : function() {
             Physics.start();
@@ -125,23 +159,18 @@ if (!window['requestAnimationFrame'])
         update : function(data) {
             Physics.viewPort = data.viewPort;
             Settings.scale = Renderer.sceneWidth / data.viewPort[2];
-            window.requestAnimationFrame(function(){
-              Renderer.update(data.bodiesState);
+            //window.requestAnimationFrame(function(){
+              Renderer.updateBodies(data.bodiesState);
               Renderer.drawGrid();
-            });
-            if ( data.collisions.length ) {
-                Renderer.drawAdrenalineEffect();
-                for ( var i=0, len = data.collisions.length; i < len; i++ ) {
-                    Renderer.drawCollisionEffect(data.collisions[i]);
-                }
-            }
+              Renderer.processEffects(data.collisions);
+            //});
             for (var fxdlName in data.flexidollsState) {
               jQuery('.'+fxdlName, UI.jIndicators).progressbar( "value" , data.flexidollsState[fxdlName]);
             }
         }
     }
 
-    Playground.callbacks['debug'] = function(event, data){ console.debug(data); };
+    Playground.callbacks['debug'] = function(data){ console.debug(data); };
      
     Sound = {
         play : jQuery.throttle(300, function(){
@@ -214,7 +243,7 @@ if (!window['requestAnimationFrame'])
         },
         //throttledExecInWorkedContext : jQuery.throttle( 250, this.execInWorkerContext),
         workerListener : function(event) {
-            Playground.callbacks[event.data.contractId](null, event.data.data);
+            Playground.callbacks[event.data.contractId](event.data.data);
             //jQuery(document).trigger(event.data.contractId, [event.data.data]);
             if (!event.data.live) {
                 delete Playground.callbacks[event.data.contractId];
@@ -227,7 +256,6 @@ if (!window['requestAnimationFrame'])
         //needed for initial drawing and then using trnaform scale
         baseScale : 100,
         adrenalineModeId : undefined,
-        canvasPosition : null,
         jScene : null,
         sceneWidth : undefined,
         sceneHeight : undefined,
@@ -237,6 +265,9 @@ if (!window['requestAnimationFrame'])
         gridWidth : undefined,
         gridHeight: undefined,
         effectNode : null,
+        effectDuration : 300,
+        actorNodeList : {},
+        effectsQueue : [],
         init : function() {
             var self = this;
             self.jScene = jQuery('.scene');
@@ -244,7 +275,6 @@ if (!window['requestAnimationFrame'])
             self.sceneWidth = Renderer.jScene.width();
             self.sceneHeight = Renderer.jScene.height();
 
-            self.canvasPosition = self.getElementPosition(self.jScene.get(0));
 
             var canvas = self.jScene.find('canvas')[0];
             canvas.width = self.sceneWidth;
@@ -252,14 +282,13 @@ if (!window['requestAnimationFrame'])
             self.canvasCtx = canvas.getContext("2d");
             self.canvasCtx.strokeStyle = "gray"
             self.canvasCtx.lineWidth = 1;
-            var colNum = 10;
+            var colNum = 5;
             self.gridWidth = Physics.worldWidth / colNum; 
             self.gridHeight = Physics.worldHeight / colNum; 
             //self.drawGrid();
-            self.initControls();
-            self.jEffectNode = jQuery('<div class="effect"></div>');
+            self.effectNodeSample = jQuery('<div class="effect"></div>').get(0);
             Physics.execInWorkerContext(
-                function(event, data) {
+                function(data) {
                     var renderData = [];
                     for ( var body = PhysWorker.world.GetBodyList(); body ; body = body.GetNext() ) {
                       var userData = body.GetUserData();
@@ -279,16 +308,16 @@ if (!window['requestAnimationFrame'])
                     }
                     return renderData
                 },
-                function(event, renderData) {
+                function(renderData) {
                     for (var i=0; i < renderData.length; i++) {
                         //if (renderData[i].userData) {
-                      Playground.actorNodeList[renderData[i].resourceId] = Renderer.initBody(renderData[i]);
+                      Renderer.actorNodeList[renderData[i].resourceId] = Renderer.initBody(renderData[i]);
                         //}
                     }
                 }
             );
         },
-        update : function(bodiesState) {
+        updateBodies : function(bodiesState) {
           var self = this;
             var scale = Settings.scale;
             var baseScale = self.baseScale
@@ -296,8 +325,8 @@ if (!window['requestAnimationFrame'])
               var bodyState = bodiesState[i],
               position = bodyState.position,
               angle = bodyState.angle,
-              bodyNode = Playground.actorNodeList[bodyState.resourceId];
-              bodyNode.style.OTransform = bodyNode.style.WebkitTransform = 'translate(' + ( ( position.x  - Physics.viewPort[0]) * scale) + 'px, ' + ( ( position.y - Physics.viewPort[1]) * scale) + 'px) rotate(' + ( angle ) + 'rad) scale(' +  scale / baseScale+ ')';
+              bodyNode = Renderer.actorNodeList[bodyState.resourceId];
+             bodyNode.style.OTransform = bodyNode.style.WebkitTransform = 'translate(' + ( ( position.x  - Physics.viewPort[0]) * scale) + 'px, ' + ( ( position.y - Physics.viewPort[1]) * scale) + 'px) rotate(' + ( angle ) + 'rad) scale(' +  scale / baseScale+ ')';
             }
         },
         initBody : function(bodyData) {
@@ -317,6 +346,57 @@ if (!window['requestAnimationFrame'])
               //.attr('data-half-base-width', bodyData.halfWidth * baseScale * 0)
               .appendTo(Renderer.jScene);
             return jShape.get(0);
+        },
+        processEffects : function(collisions) {
+          var scale = Settings.scale;
+          var now = Date.now();
+          for ( var i=0; i < this.effectsQueue.length; i++ ) {
+            var effect = this.effectsQueue[i];
+            if (now - effect.updatedOn > 60) {
+              effect.frameNum++;
+              if (effect.frameNum  > 5) {
+                effect.node.parentNode.removeChild(effect.node);
+                this.effectsQueue.splice(i,1);
+              } else {
+                if (effect.type == 'block') {
+                  effect.node.style.backgroundImage = 'url(/images/effect_'+effect.frameNum+'.png)';
+                  //console.log('url(/images/effect_'+effect.frameNum+'.png)');
+                } else {
+                  effect.node.style.backgroundImage = 'url(/images/'+effect.frameNum+'.png)';
+                }
+                effect.updatedOn = now;
+              }
+            }
+          }
+          now = Date.now();
+          //new nodes are created after update,
+          //so we don't trigger style after insert in DOM
+          //TODO make use of document Fragment
+          for ( var i=0, len = collisions.length; i < len; i++ ) {
+            var collision = collisions[i];
+            var effectNode = this.effectNodeSample.cloneNode();
+            effectNode.classList.add(collision.type);
+            if (collision.type == 'block') {
+              effectNode.style.backgroundImage = 'url(/images/effect_1.png)';
+            } else {
+              effectNode.style.backgroundImage = 'url(/images/1.png)';
+            }
+            this.effectsQueue.push(
+              {
+                node : effectNode,
+                updatedOn : now,
+                type : collision.type,
+                frameNum : 1
+              }
+            );
+            if (collision.anchorResourceId == -1) {
+              effectNode.style.WebkitTransform = 'translate(' + ( (collision.pos.x - Physics.viewPort[0]) * scale ) + 'px,' + ( (collision.pos.y - Physics.viewPort[1]) * scale ) + 'px) rotate('+ ( Math.random() * Math.PI) +'rad) scale(' +  Settings.scale / Renderer.baseScale+ ')';
+              Renderer.jScene.get(0).appendChild(effectNode);
+            } else {
+              effectNode.style.WebkitTransform = 'translate(' + ( collision.pos.x * scale ) + 'px,' + ( collision.pos.y * scale ) + 'px) rotate('+ ( Math.random() * Math.PI) +'rad) scale(' +  Settings.scale / Renderer.baseScale+ ')';
+              Renderer.actorNodeList[collision.anchorResourceId].appendChild(effectNode);
+            }
+          }
         },
         drawGrid : function() {
             var self = this;
@@ -338,85 +418,6 @@ if (!window['requestAnimationFrame'])
             }
             ctx.stroke();
         },
-        initControls : function() {
-            var self = this;
-
-            jQuery(document).keydown(function(event){
-                var motionVec2;
-                switch (event.which) {
-                //down
-                case 40 : 
-                    motionVec2 = new b2Vec2(0, 10);
-                    break;
-                    //up
-                case 38 : 
-                    motionVec2 = new b2Vec2(0, -10);
-                    break;
-                    //left
-                case 37 : 
-                    motionVec2 = new b2Vec2(-10, 0);
-                    break;
-                    //right
-                case 39 : 
-                    motionVec2 = new b2Vec2(10, 0);
-                    break;
-                }
-                //console.debug(motionVec2);
-                if (motionVec2)
-                    Physics.execInWorkerContext(
-                        function(motionVec2) {
-                            PhysWorker.player1.applyImpulse(motionVec2);
-                        },
-                        null,
-                        motionVec2
-                    );
-                    return false;
-            });
-        },
-        //http://js-tut.aardon.de/js-tut/tutorial/position.html
-        getElementPosition : function(element) {
-            var elem=element, tagname="", x=0, y=0;
-
-            while((typeof(elem) == "object") && (typeof(elem.tagName) != "undefined")) {
-                y += elem.offsetTop;
-                x += elem.offsetLeft;
-                tagname = elem.tagName.toUpperCase();
-
-                if(tagname == "BODY")
-                    elem=0;
-
-                if(typeof(elem) == "object") {
-                    if(typeof(elem.offsetParent) == "object")
-                        elem = elem.offsetParent;
-                    }
-            }
-
-            return {x: x, y: y};
-        },
-        drawCollisionEffect : function(collision) {
-            var jEffectNode;
-            var scale = Settings.scale;
-            //TODO cache
-            var jEffectNode = this.jEffectNode.clone();
-            jEffectNode
-              .css('-webkit-transform', 'translate(' + ( (collision.pos.x - Physics.viewPort[0]) * scale ) + 'px, ' + ( (collision.pos.y - Physics.viewPort[1]) * scale ) + 'px)')
-              .addClass(collision.type)
-              .one('webkitAnimationEnd', function() {jQuery(this).remove(); });
-            Renderer.jScene.append(
-              jEffectNode
-            );
-            (function chgBgImg(node, num){
-              node.style.backgroundImage = 'url(/images/effect_'+num+'.png)';
-              if ( num < 5) {
-                setTimeout(
-                  function() {
-                    chgBgImg(node, num+1);
-                  },
-                  60
-                );
-              }
-            })(jEffectNode.get(0), 1);
-        },
         drawAdrenalineEffect : function() {
             var self = this;
             self.jScene.addClass('adrenaline-mode');
@@ -430,13 +431,14 @@ if (!window['requestAnimationFrame'])
         }
     }
 
-    var Settings = {
-        scale : 100
-    },
+    var
+      Settings = {
+          scale : 100
+      },
 
-    b2Vec2 = Box2D.Common.Math.b2Vec2,
-    e_circleShape = Box2D.Collision.Shapes.b2Shape.e_circleShape,
-    e_polygonShape = Box2D.Collision.Shapes.b2Shape.e_polygonShape;
+      b2Vec2 = Box2D.Common.Math.b2Vec2,
+      e_circleShape = Box2D.Collision.Shapes.b2Shape.e_circleShape,
+      e_polygonShape = Box2D.Collision.Shapes.b2Shape.e_polygonShape;
 
     Playground.init();
     Playground.start();
