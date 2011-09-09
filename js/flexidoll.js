@@ -10,14 +10,14 @@ if (!window['requestAnimationFrame'])
       window.setTimeout(callback, 1000 / 60);
     };
   })();
-    //var stats = new Stats();
-    //jQuery('.counter').append( stats.domElement );
+    var stats = new Stats();
+    jQuery('.counter').append( stats.domElement );
 
-    //setInterval(function () {
+    setInterval(function () {
 
-        //stats.update();
+        stats.update();
 
-    //}, 1000/60);
+    }, 1000/60);
 
 
     //jQuery(document).bind('debug', function(event, data){ console.debug(data); });
@@ -358,12 +358,13 @@ if (!window['requestAnimationFrame'])
                 effect.node.parentNode.removeChild(effect.node);
                 this.effectsQueue.splice(i,1);
               } else {
-                if (effect.type == 'block') {
-                  effect.node.style.backgroundImage = 'url(/images/effect_'+effect.frameNum+'.png)';
-                  //console.log('url(/images/effect_'+effect.frameNum+'.png)');
-                } else {
-                  effect.node.style.backgroundImage = 'url(/images/'+effect.frameNum+'.png)';
-                }
+                effect.node.style.backgroundPosition = '0 -'+ (effect.frameNum - 1) +'00px';
+                //if (effect.type == 'block') {
+                  //effect.node.style.backgroundPosition = '0 '+effect.frameNum+'00px';
+                  ////console.log('url(/images/effect_'+effect.frameNum+'.png)');
+                //} else {
+                  //effect.node.style.backgroundImage = 'url(/images/'+effect.frameNum+'.png)';
+                //}
                 effect.updatedOn = now;
               }
             }
@@ -376,11 +377,11 @@ if (!window['requestAnimationFrame'])
             var collision = collisions[i];
             var effectNode = this.effectNodeSample.cloneNode();
             effectNode.classList.add(collision.type);
-            if (collision.type == 'block') {
-              effectNode.style.backgroundImage = 'url(/images/effect_1.png)';
-            } else {
-              effectNode.style.backgroundImage = 'url(/images/1.png)';
-            }
+            //if (collision.type == 'block') {
+              //effectNode.style.backgroundPosition = 'url(/images/effect_1.png)';
+            //} else {
+              //effectNode.style.backgroundPosition = 'url(/images/1.png)';
+            //}
             this.effectsQueue.push(
               {
                 node : effectNode,
@@ -393,7 +394,8 @@ if (!window['requestAnimationFrame'])
               effectNode.style.WebkitTransform = 'translate(' + ( (collision.pos.x - Physics.viewPort[0]) * scale ) + 'px,' + ( (collision.pos.y - Physics.viewPort[1]) * scale ) + 'px) rotate('+ ( Math.random() * Math.PI) +'rad) scale(' +  Settings.scale / Renderer.baseScale+ ')';
               Renderer.jScene.get(0).appendChild(effectNode);
             } else {
-              effectNode.style.WebkitTransform = 'translate(' + ( collision.pos.x * scale ) + 'px,' + ( collision.pos.y * scale ) + 'px) rotate('+ ( Math.random() * Math.PI) +'rad) scale(' +  Settings.scale / Renderer.baseScale+ ')';
+              //doesn't need scaling as parent is already scaled
+              effectNode.style.WebkitTransform = 'translate(' + ( collision.pos.x * scale ) + 'px,' + ( collision.pos.y * scale ) + 'px) rotate('+ ( Math.random() * Math.PI) +'rad)';
               Renderer.actorNodeList[collision.anchorResourceId].appendChild(effectNode);
             }
           }

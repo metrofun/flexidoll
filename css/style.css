@@ -18,7 +18,7 @@ body {
     width :600px;
     height : 600px;0
     position : relative;
-    -webkit-transform: translateZ(0);
+    /*-webkit-transform: translateZ(0);*/
 }
 /*.scene.adrenaline-mode {*/
     /*[>background : url('/images/adrenalin_mode_bg.png') top left repeat-x;<]*/
@@ -118,59 +118,56 @@ body {
   /*background-size : auto;*/
   background-repeat : repeat-y;
 }
+.ground.up {
+  background-position : 0 250px;
+}
+.ground.right{
+  background-position : 0 1500px;
+}
+.ground.down{
+  background-position : 0 1750px;
+}
 .effect {
   /*content : "BLOCK";*/
   position : absolute;
-  background-size : 100%;
   background-repeat : no-repeat;
+  background-size : 100%;
+  /*-webkit-animation-fill-mode: forwards;*/
+  /*-webkit-animation-timing-function: step-end;*/
   /*-webkit-animation-duration: 300ms;*/
-  /*-webkit-animation-name: slidein;*/
-  width: 75px;
-  height : 75px;
-  margin-left : -37.5px;
-  margin-top : -37.5px;
+  /*-webkit-animation-name: step;*/
+  width: 100px;
+  height : 100px;
+  margin-left : -50px;
+  margin-top : -50px;
 }
-@-webkit-keyframes slidein {
-  0% {
-    width : 25px;
-    height : 25px;
-    margin-left : -12.5px;
-    margin-top : -12.5px;
-  }
-  100% {
-    width: 75px;
-    height : 75px;
-    margin-left : -37.5px;
-    margin-top : -37.5px;
-  }
+.effect.block {
+  background-image : url(/images/block.png);
 }
-.pow.frame1 {
-  background-image : url('/images/1.png');
+.effect.pow{
+  background-image : url(/images/pow.png);
+  -webkit-animation-duration: 500ms;
 }
-.pow.frame2 {
-  background-image : url('/images/2.png');
-}
-.pow.frame3 {
-  background-image : url('/images/3.png');
-}
-.pow.frame4 {
-  background-image : url('/images/4.png');
-}
-.block.frame1 {
-  background-image : url('/images/effect_1.png');
-}
-.block.frame2 {
-  background-image : url('/images/effect_2.png');
-}
-.block.frame3 {
-  background-image : url('/images/effect_3.png');
-}
-.block.frame4 {
-  background-image : url('/images/effect_4.png');
-}
-.block.frame5 {
-  background-image : url('/images/effect_5.png');
-}
+/*@-webkit-keyframes step{*/
+  /*0% {*/
+    /*background-position : 0 0;*/
+  /*}*/
+  /*20% {*/
+    /*background-position : 0 -100px;*/
+  /*}*/
+  /*40% {*/
+    /*background-position : 0 -200px;*/
+  /*}*/
+  /*60% {*/
+    /*background-position : 0 -300px;*/
+  /*}*/
+  /*80% {*/
+    /*background-position : 0 -400px;*/
+  /*}*/
+  /*100% {*/
+    /*background-position : 0 -500px;*/
+  /*}*/
+/*}*/
 .indicators{
   width : 600px;
   overflow : hidden;
